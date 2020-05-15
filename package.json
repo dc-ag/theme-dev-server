@@ -1,6 +1,6 @@
 {
   "name": "dynamic-commerce-theme-dev-server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Small webserver for developing themes for dynamic commerce ecosystem",
   "keywords": [
     "dynamic commerce",
