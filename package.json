@@ -1,0 +1,25 @@
+{
+  "name": "dynamic-commerce-theme-dev-server",
+  "version": "1.0.0",
+  "description": "Small webserver for developing themes for dynamic commerce ecosystem",
+  "keywords": [
+    "dynamic commerce",
+    "dynamic content",
+    "themes"
+  ],
+  "author": {
+    "name": "Max Wagner",
+    "email": "wagner@dc-solution.de"
+  },
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module",
+  "dependencies": {
+    "colors": "^1.4.0",
+    "mustache": "^4.0.1",
+    "node-fetch": "^2.6.0"
+  },
+  "license": "MIT"
+}
