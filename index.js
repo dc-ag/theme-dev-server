@@ -25,6 +25,14 @@ export function run(options, port = 3000) {
       return;
     }
 
+    if(request.url != '/') {
+      const possibleFilePath = request.url.substr(1);
+      if(fs.existsSync(possibleFilePath)) {
+        response.end(fs.readFileSync(possibleFilePath));
+        return;
+      }
+    }
+
     const mainTemplate = fs.readFileSync(mainTemplateName, "utf8");
     const headerPartial = fs.readFileSync(headerPartialTemplateName, "utf8");
     const masterFrontendTemplate = await getMasterFrontendTemplateContent(
@@ -37,7 +45,7 @@ export function run(options, port = 3000) {
 
     const renderedContent = mustache.render(
       masterFrontendTemplate,
-      contentData,
+      {...contentData, themeRoot : ""},
       {
         headerPartial: headerPartial,
         bodyPartial: mainTemplate,
