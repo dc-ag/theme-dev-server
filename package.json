@@ -22,9 +22,6 @@
     "node-fetch": "^2.6.0"
   },
   "license": "MIT",
-  "publishConfig": {
-    "registry":"https://npm.pkg.github.com/"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/dynamic-commerce/themeDevServer"
