@@ -85,6 +85,12 @@ async function getContentData(url, language) {
     .then((res) => res.json())
     .then((body) => {
       return body;
+    }).catch((error) => {
+      console.log(
+        `Content could not be loaded! File does not exists locally nor at the url: ${url}`
+          .red
+      );
+      return null;
     });
 }
 
