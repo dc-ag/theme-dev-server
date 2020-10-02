@@ -38,9 +38,12 @@ export function run(options, port = 3000) {
     const masterFrontendTemplate = await getMasterFrontendTemplateContent(
       options.dataBaseUrl
     );
+
     const contentData = await getContentData(
       options.dataBaseUrl + request.url,
-      options.language
+      options.language,
+      options.basicAuthUsername,
+      options.basicAuthPassword,
     );
 
     const renderedContent = mustache.render(
@@ -75,11 +78,15 @@ async function getMasterFrontendTemplateContent(baseUrl) {
     });
 }
 
-async function getContentData(url, language) {
+async function getContentData(url, language, basicAuthUsername, basicAuthPassword) {
+  
+  const authorizationHeaderString = Buffer.from(`${basicAuthUsername}:${basicAuthPassword}`).toString('base64');
+  
   return await fetch(url, {
     headers: {
       "accept-language": language,
       accept: "application/json",
+      authorization:`Basic ${authorizationHeaderString}`,
     },
   })
     .then((res) => res.json())
