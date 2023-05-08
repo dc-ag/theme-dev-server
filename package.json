@@ -1,6 +1,6 @@
 {
   "name": "dc-ag-theme-dev-server",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Small webserver for developing themes for the dynamic content ecosystem",
   "keywords": [
     "dynamic commerce",
