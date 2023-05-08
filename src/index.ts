@@ -3,22 +3,27 @@ import { RunOptions, Server } from "./Server.js";
 
 function verifyOptions(options: any): boolean {
     if (options.username === undefined) {
-        console.log('"username" not defined in options!');
+        console.error('"username" not defined in options!');
         return false;
     }
 
     if (options.password === undefined) {
-        console.log('"password" not defined in options!');
+        console.error('"password" not defined in options!');
         return false;
     }
 
     if (options.dataBaseUrl === undefined) {
-        console.log('"dataBaseUrl" not defined in options!');
+        console.error('"dataBaseUrl" not defined in options!');
         return false;
     }
 
     if (options.language === undefined) {
-        console.log('"language" not defined in options!');
+        console.error('"language" not defined in options!');
+        return false;
+    }
+
+    if (options.themeName === undefined) {
+        console.error('"themeName" not defined in options!');
         return false;
     }
     return true;
@@ -53,14 +58,12 @@ export function run(options: any) {
         options.headerPartialTemplateName = "headerPartial.mustache";
     }
 
-    console.log(options);
     if (
         !verifyOptions(options)
         || !mainTemplateAvailableAndReadable(options.mainTemplateName)
         || !headerPartialTemplateAvailableAndReadable(options.headerPartialTemplateName)
     ) return;
 
-    console.log("here");
     const server = new Server(options as RunOptions);
     server.run();
 }

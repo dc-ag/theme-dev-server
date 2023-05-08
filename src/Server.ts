@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import * as fs from "fs";
 import { IncomingMessage, ServerResponse, createServer } from "http";
 import mustache from "mustache";
@@ -14,6 +14,7 @@ export interface RunOptions {
     port?: number;
     mainTemplateName: string;
     headerPartialTemplateName: string;
+    themeName: string;
 }
 
 export class Server {
@@ -25,6 +26,7 @@ export class Server {
     private _headerPartialTemplateName: string;
     private _basicAuthUsername?: string;
     private _basicAuthPassword?: string;
+    private _themeName: string;
 
     constructor(options: RunOptions) {
         this._port = options.port ?? 3000;
@@ -32,15 +34,15 @@ export class Server {
         this._dataBaseUrl = options.dataBaseUrl;
         this._language = options.language;
         this._mainTemplateName = options.mainTemplateName;
-        this._headerPartialTemplateName = options.mainTemplateName;
+        this._headerPartialTemplateName = options.headerPartialTemplateName;
         this._basicAuthUsername = options.basicAuthUsername;
         this._basicAuthPassword = options.basicAuthPassword;
+        this._themeName = options.themeName;
     }
 
     public run(): void {
         const server = createServer(this.requestHandler.bind(this));
 
-        console.log("run");
         server.listen(this._port, () => {
             console.log(`Server is listening on ${this._port}`);
         });
@@ -48,25 +50,38 @@ export class Server {
 
     private async requestHandler(request: IncomingMessage, response: ServerResponse) {
         if (request.url === undefined) return;
-        if (request.url === "favicon.ico") return;
+        if (request.url === "/favicon.ico") return;
 
-        if (request.url != '/') {
-            const possibleFilePath = request.url.substr(1);
+        const pathWithTheme = `/themes/${this._themeName}`;
+        if (request.url.startsWith(pathWithTheme)) {
+            const possibleFilePath = request.url.slice(pathWithTheme.length + 1);
+
             if (fs.existsSync(possibleFilePath)) {
-                response.end(fs.readFileSync(possibleFilePath));
-                return;
+                console.debug(`Found local file ${possibleFilePath}`);
+                return response.end(fs.readFileSync(possibleFilePath));
             }
+        }
+
+        let responseOrNull = await this.getContentData(request.url);
+
+        if (responseOrNull === null) return response.end("");
+
+        let contentData: Buffer = responseOrNull.data;
+
+        if (request.url.split('/').pop()?.includes('.')) {
+            response.setHeader("content-type", responseOrNull.headers["content-type"] ?? "");
+            response.setHeader("transfer-encoding", responseOrNull.headers["transfer-encoding"] ?? "");
+            response.chunkedEncoding = true;
+            return response.end(contentData, 'binary');
         }
 
         const mainTemplate = fs.readFileSync(this._mainTemplateName, "utf8");
         const headerPartial = fs.readFileSync(this._headerPartialTemplateName, "utf8");
         const masterFrontendTemplate = await this.getMasterFrontendTemplateContent();
 
-        const contentData = await this.getContentData(request.url);
-
         const renderedContent = mustache.render(
             masterFrontendTemplate,
-            { ...contentData, themeRoot: "" },
+            { ...JSON.parse(contentData.toString('binary')), themeRoot: `/themes/${this._themeName}` },
             {
                 headerPartial: headerPartial,
                 bodyPartial: mainTemplate,
@@ -78,14 +93,21 @@ export class Server {
     }
 
     private async getMasterFrontendTemplateContent() {
-        return await fetch(this._dataBaseUrl + "/templates/masterFrontend.mustache")
-            .then((res) => res.text())
-            .then((body) => {
-                return body;
-            });
+        let url = this._dataBaseUrl + "/templates/masterFrontend.mustache";
+        console.debug(`Requesting ${url}`);
+        url = await this._authenticator.getAuthorizedUrl(url);
+        const response = await axios.get(url).catch(reason => {
+            console.error(`Failed fetching ${url}`)
+            return {
+                data: ""
+            }
+        });
+        return response.data;
     }
 
-    private async getContentData(url: string) {
+    private async getContentData(url: string): Promise<AxiosResponse | null> {
+        const initialUrl = url;
+        console.debug(`Requesting ${this._dataBaseUrl}${initialUrl}`);
         let headers: any = {
             "accept-language": this._language,
             accept: "application/json",
@@ -95,7 +117,7 @@ export class Server {
             url = `/${url}`;
         }
 
-        if (!url.startsWith('/themes/')) {
+        if (!url.startsWith('/themes/') && !url.split('/').pop()?.includes(".")) {
             url = `/dc/preview${url}`;
         }
         url = `${this._dataBaseUrl}${url}`;
@@ -111,15 +133,18 @@ export class Server {
 
         url = await this._authenticator.getAuthorizedUrl(url);
 
-        console.log(url + "\n\n");
         const response = await axios.get(url, {
-            headers: headers
+            headers: headers,
+            responseEncoding: 'binary',
+            responseType: "arraybuffer"
+        }).catch(reason => {
+            console.error(`Failed fetching ${this._dataBaseUrl}${initialUrl}`);
+            return null;
         });
 
-        if (response.status !== 200) {
-            console.error(`Couldn't fetch ${url}`);
+        if (response?.status !== 200) {
             return null;
         }
-        return response.data;
+        return response;
     }
 }

@@ -8,6 +8,7 @@ export interface RunOptions {
     port?: number;
     mainTemplateName: string;
     headerPartialTemplateName: string;
+    themeName: string;
 }
 export declare class Server {
     private _authenticator;
@@ -18,6 +19,7 @@ export declare class Server {
     private _headerPartialTemplateName;
     private _basicAuthUsername?;
     private _basicAuthPassword?;
+    private _themeName;
     constructor(options: RunOptions);
     run(): void;
     private requestHandler;
