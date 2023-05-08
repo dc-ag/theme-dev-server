@@ -1,29 +1,36 @@
 {
   "name": "dynamic-commerce-theme-dev-server",
-  "version": "1.0.3",
-  "description": "Small webserver for developing themes for dynamic commerce ecosystem",
+  "version": "2.0.0",
+  "description": "Small webserver for developing themes for the dynamic content ecosystem",
   "keywords": [
     "dynamic commerce",
     "dynamic content",
     "themes"
   ],
   "author": {
-    "name": "Max Wagner",
-    "email": "wagner@dc-solution.de"
+    "name": "dc AG",
+    "email": "info@dc.ag"
   },
-  "main": "index.js",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "npx tsc -p tsconfig.json",
+    "watch": "npx tsc -p tsconfig.json -w"
   },
   "type": "module",
   "dependencies": {
-    "colors": "^1.4.0",
-    "mustache": "^4.0.1",
-    "node-fetch": "^2.6.0"
+    "axios": "^1.4.0",
+    "mustache": "^4.0.1"
   },
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/dynamic-commerce/theme-dev-server"
+  },
+  "devDependencies": {
+    "@types/axios": "^0.14.0",
+    "@types/mustache": "^4.2.2",
+    "@types/node": "^20.1.0",
+    "typescript": "^5.0.4"
   }
 }
